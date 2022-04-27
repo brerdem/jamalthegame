@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
+import { Switch } from '@headlessui/react';
 
 const pages = {
 	how: 'Nasıl Oynanır?',

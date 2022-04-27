@@ -1,10 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import Layout from '../components/Layout';
 import TinderCard from 'react-tinder-card';
-import { Transition } from '@headlessui/react';
+import { Transition, Dialog } from '@headlessui/react';
 import Typewriter from 'typewriter-effect';
 
-import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { FaArrowLeft, FaArrowRight, FaUndo } from 'react-icons/fa';
 import ReactConfetti from 'react-confetti';
 import { useWindowSize } from '../utils/hooks';
 import { useRouter } from 'next/router';
@@ -61,6 +61,7 @@ export default function Home() {
 	const [typeWriter, setTypeWriter] = useState(null);
 	const { width, height } = useWindowSize();
 	const [isComplete, setIsComplete] = useState(false);
+	const [open, setOpen] = useState(false);
 
 	const router = useRouter();
 
@@ -100,6 +101,17 @@ export default function Home() {
 
 	//const isShowing = useMemo(() => index >= 0, [index]);
 
+	const handleUndo = async () => {
+		if (index < cards.length - 1) {
+			setOpen(false);
+			setTimeout(async () => {
+				setIndex(index + 1);
+				currentIndexRef.current = index + 1;
+				await childRefs[index + 1].current.restoreCard();
+			}, 750);
+		}
+	};
+
 	useEffect(() => {
 		if (typeWriter && index >= 0) {
 			typeWriter
@@ -112,6 +124,74 @@ export default function Home() {
 
 	return (
 		<Layout>
+			<Transition appear show={open} as={Fragment}>
+				<Dialog
+					as="div"
+					className="fixed inset-0 z-10 overflow-y-auto"
+					onClose={() => setOpen(false)}>
+					<div className="min-h-screen px-4 text-center">
+						<Transition.Child
+							as={Fragment}
+							enter="ease-out duration-300"
+							enterFrom="opacity-0"
+							enterTo="opacity-100"
+							leave="ease-in duration-200"
+							leaveFrom="opacity-100"
+							leaveTo="opacity-0">
+							<Dialog.Overlay className="fixed inset-0" />
+						</Transition.Child>
+
+						{/* This element is to trick the browser into centering the modal contents. */}
+						<span
+							className="inline-block h-screen align-middle"
+							aria-hidden="true">
+							&#8203;
+						</span>
+						<Transition.Child
+							as={Fragment}
+							enter="ease-out duration-300"
+							enterFrom="opacity-0 scale-95"
+							enterTo="opacity-100 scale-100"
+							leave="ease-in duration-200"
+							leaveFrom="opacity-100 scale-100"
+							leaveTo="opacity-0 scale-95">
+							<div className="inline-block w-auto pb-4 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl rounded-2xl">
+								<div className="mt-2">
+									<img
+										src={'/metamask.png'}
+										width={340}
+										height={426}
+										alt="Metamask"
+									/>
+								</div>
+
+								<div className="mt-4 px-4 flex flex-row justify-end">
+									<button
+										className="btn bg-slate-400 text-white border-0"
+										onClick={() => setOpen(false)}>
+										Reject
+									</button>
+									<button
+										className="btn bg-blue-600 text-white border-0 ml-4"
+										onClick={handleUndo}>
+										Accept
+									</button>
+								</div>
+							</div>
+						</Transition.Child>
+					</div>
+				</Dialog>
+			</Transition>
+
+			<div className="flex items-center absolute right-6 top-24">
+				<button
+					className="btn btn-ghost gap-2 font-mono text-xl text-primary"
+					onClick={() => setOpen(true)}>
+					<FaUndo />
+					UNDO
+				</button>
+			</div>
+
 			{isComplete && (
 				<ReactConfetti
 					width={width}
